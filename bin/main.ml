@@ -4,12 +4,12 @@ let parse_envvar line = match String.split line ~on:'=' with
   | name :: values -> Some (name, String.concat ~sep:"=" values)
   | []             -> None
 
-let load_dotenv () = In_channel.with_file (Filename.of_parts [Core_unix.getcwd (); ".env"]) ~f:(fun ch -> let open List.Monad_infix in
+let load_dotenv () = In_channel.with_file (Filename.of_parts [Core_unix.getcwd () ; ".env"]) ~f:(fun ch -> let open List.Monad_infix in
   List.fold (In_channel.input_lines ch >>| parse_envvar)
     ~init:()
     ~f:(fun _ x -> match x with
       | Some (key, data) -> Core_unix.putenv ~key ~data
-      | None               -> ()))
+      | None             -> ()))
 
 let fetch_input day = let open Lwt in let open Cohttp in let open Cohttp_lwt_unix in
   load_dotenv ();
@@ -19,9 +19,9 @@ let fetch_input day = let open Lwt in let open Cohttp in let open Cohttp_lwt_uni
       Lwt_main.run (Client.get ~headers:(Http.Header.of_list [("Cookie", Fmt.str "session=%s" session)]) (Uri.of_string url) >>= fun (resp, body) ->
           match resp |> Response.status with
             | `OK          -> (Cohttp_lwt.Body.to_string body) >|= (fun x -> Ok x)
-            | `Bad_request -> return "SESSION is invalid" >|= (fun x -> Error x)
-            | `Not_found   -> return "Puzzle is not available yet" >|= (fun x -> Error x)
-            | c                   -> return (Code.code_of_status c |> Fmt.str "Unknown error: received HTTP status code %i") >|= (fun x -> Error x))
+            | `Bad_request -> return (Error "SESSION is invalid")
+            | `Not_found   -> return (Error "Puzzle is not available yet")
+            | c            -> return (Error (Code.code_of_status c |> Fmt.str "Unknown error: received HTTP status code %i")))
 
 let get_input day =
   let path = Filename.of_parts [Core_unix.getcwd () ; "input" ; Fmt.str "day_%02i.txt" day] in
@@ -53,9 +53,11 @@ let () =
     if Array.length argv <> 2 then
       printf "Usage: %s <day number>\n" argv.(0)
     else
-      let open Option.Monad_infix in
-        match (int_of_string_opt argv.(1) >>= (fun x -> if x >= 1 && x <= 12 then Some x else None)) with
-          | Some day -> (match get_input day with
-            | Ok input -> solutions.(day - 1) input
-            | Error err -> printf "Couldn't run solution for day %i: %s\n" day err)
-          | None -> print_endline "Day number must be an integer between 1 and 12"
+      let open Result.Monad_infix in
+        (Result.of_option
+          (let open Option.Monad_infix in int_of_string_opt argv.(1) >>= (fun x -> if x >= 1 && x <= 12 then Some x else None))
+          ~error:"Day number must be an integer between 1 and 12") >>=
+        (fun day ->
+          get_input day >>| solutions.(day - 1))
+          |> Result.error
+          |> Option.value_map ~default:() ~f:print_endline
