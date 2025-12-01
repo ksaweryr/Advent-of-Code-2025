@@ -1,2 +1,5 @@
-(test
- (name test_advent_of_code_2025))
+(library
+ (name test_advent_of_code_2025)
+ (libraries advent_of_code_2025 ppx_assert ppx_inline_test)
+ (inline_tests)
+ (preprocess (pps ppx_assert ppx_inline_test)))

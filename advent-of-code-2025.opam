@@ -16,6 +16,8 @@ depends: [
   "core_unix"
   "cohttp-lwt-unix"
   "lwt_ssl"
+  "ppx_assert"
+  "ppx_inline_test"
   "odoc" {with-doc}
 ]
 build: [
