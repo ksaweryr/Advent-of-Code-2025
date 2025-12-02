@@ -32,3 +32,17 @@ let%test_unit "day01_part2_example_fold" = [%test_result: int list] (let input: 
   { direction = Right ; distance = 14};
   { direction = Left ; distance = 82}] in
   List.fold (prefixes input) ~init:[] ~f:(fun st inp -> st @ [Advent_of_code_2025.Day01.part2 inp])) ~expect:[0; 1; 1; 2; 2; 3; 4; 4; 5; 5; 6]
+
+let%test_unit "day02_part1_example" = [%test_result: int64] (let input: Advent_of_code_2025.Day02.range list = [
+  { lo = 11L ; hi = 22L };
+  { lo = 95L ; hi = 115L };
+  { lo = 998L ; hi = 1012L };
+  { lo = 1188511880L ; hi = 1188511890L };
+  { lo = 222220L ; hi = 222224L };
+  { lo = 1698522L ; hi = 1698528L };
+  { lo = 446443L ; hi = 446449L };
+  { lo = 38593856L ; hi = 38593862L };
+  { lo = 565653L ; hi = 565659L };
+  { lo = 824824821L ; hi = 824824827L };
+  { lo = 2121212118L ; hi = 2121212124L }] in
+  Advent_of_code_2025.Day02.part1 input) ~expect:1227775554L
