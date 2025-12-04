@@ -52,7 +52,7 @@ let%test_unit "day02_part1_example" = [%test_result: int64] (let input: Advent_o
   { lo = 2121212118L ; hi = 2121212124L }] in
   Advent_of_code_2025.Day02.part1 input) ~expect:1227775554L
 
-  let%test_unit "day02_part2_example" = [%test_result: int64] (let input: Advent_of_code_2025.Day02.range list = [
+let%test_unit "day02_part2_example" = [%test_result: int64] (let input: Advent_of_code_2025.Day02.range list = [
   { lo = 11L ; hi = 22L };
   { lo = 95L ; hi = 115L };
   { lo = 998L ; hi = 1012L };
