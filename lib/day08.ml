@@ -18,7 +18,6 @@ module Union_find = struct
       result)
 
   let union uf a b =
-    (* printf "union %i %i\n" a b; *)
     let x = find uf a and y = find uf b in
     if x.parent = y.parent then
       ()
@@ -52,28 +51,36 @@ let all_edges points =
   Array.sort arr ~compare:(fun e1 e2 -> compare e1.length e2.length);
   arr
 
-let rec merge_n uf edges start n =
-  (* printf "merge_n %i %i\n" start n; *)
+let rec merge_n fail_dec uf edges start n =
   if n = 0 then
-    ()
+    start - 1
   else
     let edge = edges.(start) in
     let a = Union_find.find uf edge.i and b = Union_find.find uf edge.j in
     if a.parent = b.parent then
-      merge_n uf edges (start + 1) (n - 1)
+      merge_n fail_dec uf edges (start + 1) (n - fail_dec)
     else
       (Union_find.union uf edge.i edge.j;
-      merge_n uf edges (start + 1) (n - 1))
+      merge_n fail_dec uf edges (start + 1) (n - 1))
+
+let merge_n_times = merge_n 1
+let merge_n_pairs = merge_n 0
 
 let part1 points edges =
   let uf = Union_find.create (Array.length points) in
-  merge_n uf edges 0 1000;
+  Fun.const () (merge_n_times uf edges 0 1000);
   List.init (Array.length points) ~f:Fun.id
   |> List.fold ~init:(Map.empty (module Int)) ~f:(fun m i -> let { Union_find.parent ; Union_find.size } = Union_find.find uf i in Map.set m ~key:parent ~data:size)
   |> Map.to_alist
   |> List.sort ~compare:(fun a b -> compare (snd b) (snd a))
   |> Fun.flip List.take 3
   |> List.fold ~init:1 ~f:(fun acc (_, s) -> acc * s)
+
+let part2 points edges =
+  let uf = Union_find.create (Array.length points) in
+  let last_merge = merge_n_pairs uf edges 0 (Array.length points - 1) in
+  let { i ; j ; _ } = edges.(last_merge) in
+  (fst3 points.(i)) * (fst3 points.(j))
 
 let point_of_string s =
   match let open List.Monad_infix in String.split s ~on:',' >>| int_of_string with
@@ -90,4 +97,4 @@ let parse_input input =
 let solve input =
   let points = parse_input input in
   let edges = all_edges points in
-  printf "%i\n" (part1 points edges)
+  printf "%i %i\n" (part1 points edges) (part2 points edges)
