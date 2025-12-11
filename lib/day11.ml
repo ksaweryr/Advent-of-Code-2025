@@ -1,8 +1,6 @@
 (* Useful observation: the graph is a DAG *)
 open! Core
 
-module DP = Map.Make(String)
-
 let parse_line line = match String.strip line |> String.split ~on:' ' with
   | []       -> invalid_arg "Couldn't parse line"
   | hd :: tl -> (String.drop_suffix hd 1, tl)
