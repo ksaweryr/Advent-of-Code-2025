@@ -19,7 +19,7 @@
  (name advent-of-code-2025)
  (synopsis "A short synopsis")
  (description "A longer description")
- (depends ocaml core core_unix cohttp-lwt-unix lwt_ssl ppx_assert ppx_inline_test)
+ (depends ocaml core core_unix cohttp-lwt-unix lp lp-glpk lwt_ssl ppx_assert ppx_inline_test)
  (tags
   ("add topics" "to describe" your project)))
 

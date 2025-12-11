@@ -45,6 +45,24 @@ let part1_single ({ switches ; _ } as problem) =
 
 let part1 = List.sum (module Int) ~f:part1_single
 
+let part2_single { switches ; joltages ; _ } =
+  let open Lp in
+  let open List.Monad_infix in
+  let max_joltage = List.max_elt joltages ~compare:Int.compare |> Option.value_exn in
+  let vars = List.init (List.length switches) ~f:(fun i -> var (sprintf "x_%02i" i) ~integer:true ~lb:(Float.of_int 0) ~ub:(Float.of_int max_joltage)) in
+  let obj = minimize (List.fold vars ~init:(c 0.0) ~f:(++))
+  and cstrs =
+    List.zip_exn switches vars
+    >>| (fun (sw, v) -> sw >>| (fun b -> c (Float.of_int b) *~ v))
+    |> List.fold ~init:(List.init (List.length joltages) ~f:(fun _ -> c 0.0)) ~f:(fun acc p -> List.zip_exn acc p >>| (fun (a, pp) -> a ++ pp))
+    |> List.zip_exn joltages
+    >>| (fun (j, e) -> (c (Float.of_int j)) =~ e) in
+  match make obj cstrs |> Lp_glpk.solve with
+    | Ok (obj, _) -> Float.round_nearest obj |> Int.of_float
+    | Error msg   -> invalid_arg msg
+
+let part2 = List.sum (module Int) ~f:part2_single
+
 let parse_target s =
   let open List.Monad_infix in
   String.drop_prefix s 1
@@ -95,4 +113,4 @@ let parse_input input =
 
 let solve input =
   let problems = parse_input input in
-  printf "%i\n" (part1 problems)
+  printf "%i %i\n" (part1 problems) (part2 problems)
