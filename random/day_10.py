@@ -1,5 +1,7 @@
 from dataclasses import dataclass
 from functools import reduce
+import numpy as np
+from scipy.optimize import linprog
 from z3 import *
 
 
@@ -40,15 +42,30 @@ def part1_single(problem):
             return hi
 
 
+def part2_single(problem):
+    c = np.ones(len(problem.switches))
+    A_eq = np.array(problem.switches_matrix()).T
+    b_eq = np.array(problem.joltages)
+    integrality = 1 # integer variables
+    bounds = (0, None)
+    res = linprog(c=c, A_eq=A_eq, b_eq=b_eq, integrality=integrality, bounds=bounds)
+    assert res.success
+    return int(res.fun)
+
+
 def part1(problems):
     return [part1_single(p) for p in problems]
+
+
+def part2(problems):
+    return [part2_single(p) for p in problems]
 
 
 def main():
     with open('input/day_10.txt', 'rt') as f:
         problems = [parse_problem(line) for line in f]
     print(sum(part1(problems)))
-    # p = parse_problem()
+    print(sum(part2(problems)))
 
 
 if __name__ == '__main__':
